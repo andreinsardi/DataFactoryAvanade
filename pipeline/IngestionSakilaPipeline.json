@@ -46,7 +46,7 @@
 					},
 					"activities": [
 						{
-							"name": "ExportTable",
+							"name": "ExportTableDL",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -84,7 +84,13 @@
 							"inputs": [
 								{
 									"referenceName": "AzureMySqlTable01",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"tableName": {
+											"value": "@item().table_name",
+											"type": "Expression"
+										}
+									}
 								}
 							],
 							"outputs": [
