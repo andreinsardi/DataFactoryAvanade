@@ -1,0 +1,38 @@
+{
+	"name": "JoinClienteAluguelIventario",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "IN_Ingestion_ParquetCliente",
+						"type": "DatasetReference"
+					},
+					"name": "Cliente"
+				},
+				{
+					"dataset": {
+						"referenceName": "IN_Ingestion_ParquetAluguel",
+						"type": "DatasetReference"
+					},
+					"name": "Aluguel"
+				},
+				{
+					"dataset": {
+						"referenceName": "IN_Ingestion_ParquetInventario",
+						"type": "DatasetReference"
+					},
+					"name": "Inventario"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "JoinAluguelFull"
+				}
+			],
+			"script": "source(output(\n\t\tcliente_id as integer,\n\t\tloja_id as byte,\n\t\tprimeiro_nome as string,\n\t\tultimo_nome as string,\n\t\temail as string,\n\t\tendereco_id as integer,\n\t\tativo as boolean,\n\t\tdata_criacao as timestamp,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Cliente\nsource(output(\n\t\tinventario_id as integer,\n\t\tfilme_id as integer,\n\t\tloja_id as byte,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Aluguel\nsource(output(\n\t\tinventario_id as integer,\n\t\tfilme_id as integer,\n\t\tloja_id as byte,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Inventario\nCliente, Aluguel join(cliente_id == inventario_id,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinAluguelFull"
+		}
+	}
+}
