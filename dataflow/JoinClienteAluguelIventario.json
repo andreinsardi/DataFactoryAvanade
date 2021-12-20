@@ -13,26 +13,37 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "IN_Ingestion_ParquetAluguel",
-						"type": "DatasetReference"
-					},
-					"name": "Aluguel"
-				},
-				{
-					"dataset": {
 						"referenceName": "IN_Ingestion_ParquetInventario",
 						"type": "DatasetReference"
 					},
 					"name": "Inventario"
+				},
+				{
+					"dataset": {
+						"referenceName": "IN_Ingestion_ParquetAluguel",
+						"type": "DatasetReference"
+					},
+					"name": "Aluguel"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "OUT_Organization_ParquetAluguelFull",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
-					"name": "JoinAluguelFull"
+					"name": "Join1"
+				},
+				{
+					"name": "Join2"
 				}
 			],
-			"script": "source(output(\n\t\tcliente_id as integer,\n\t\tloja_id as byte,\n\t\tprimeiro_nome as string,\n\t\tultimo_nome as string,\n\t\temail as string,\n\t\tendereco_id as integer,\n\t\tativo as boolean,\n\t\tdata_criacao as timestamp,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Cliente\nsource(output(\n\t\tinventario_id as integer,\n\t\tfilme_id as integer,\n\t\tloja_id as byte,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Aluguel\nsource(output(\n\t\tinventario_id as integer,\n\t\tfilme_id as integer,\n\t\tloja_id as byte,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Inventario\nCliente, Aluguel join(cliente_id == inventario_id,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> JoinAluguelFull"
+			"script": "source(output(\n\t\tcliente_id as integer,\n\t\tloja_id as byte,\n\t\tprimeiro_nome as string,\n\t\tultimo_nome as string,\n\t\temail as string,\n\t\tendereco_id as integer,\n\t\tativo as boolean,\n\t\tdata_criacao as timestamp,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Cliente\nsource(output(\n\t\tinventario_id as integer,\n\t\tfilme_id as integer,\n\t\tloja_id as byte,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Inventario\nsource(output(\n\t\tinventario_id as integer,\n\t\tfilme_id as integer,\n\t\tloja_id as byte,\n\t\tultima_atualizacao as timestamp\n\t),\n\tallowSchemaDrift: false,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false,\n\tformat: 'parquet') ~> Aluguel\nInventario, Aluguel join(Inventario@inventario_id == Aluguel@inventario_id,\n\tjoinType:'inner',\n\tbroadcast: 'auto')~> Join1\nJoin1, Cliente join(Aluguel@filme_id == cliente_id,\n\tjoinType:'left',\n\tbroadcast: 'auto')~> Join2\nJoin2 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tformat: 'parquet',\n\tumask: 0022,\n\tpreCommands: [],\n\tpostCommands: [],\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> sink1"
 		}
 	}
 }
